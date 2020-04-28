@@ -61,6 +61,10 @@ public class MessageServiceTest {
         public void testMessage10() {
                Assertions.assertFalse(false);
         }
+        @Test
+        public void testMessage11() {
+               Assertions.assertFalse(false);
+        }
 
 	
 }
