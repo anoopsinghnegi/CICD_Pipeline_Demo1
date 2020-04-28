@@ -61,13 +61,5 @@ public class MessageServiceTest {
         public void testMessage10() {
                Assertions.assertFalse(false);
         }
-        @Test
-        public void testMessage11() {
-               Assertions.assertFalse(false);
-        }
-//added 12 test case in master adhead of rel2 
-        @Test
-        public void testMessage12() {
-        }
-	
+//resloved merging of rel2 with master
 }
