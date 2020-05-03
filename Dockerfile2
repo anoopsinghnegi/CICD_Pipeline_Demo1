@@ -2,6 +2,6 @@ FROM tomcat:8.0
 
 MAINTAINER AnoopSinghNegi
 
-ARG WAR_FILE=target/*.war
+ARG WAR_FILE=tomcat_war/target/*.war
 
 COPY ${WAR_FILE} /usr/local/tomcat/webapps/
