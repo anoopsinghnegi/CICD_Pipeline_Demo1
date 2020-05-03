@@ -1,0 +1,14 @@
+<flow-definition plugin="workflow-job@2.39">
+<actions/>
+<description/>
+<keepDependencies>false</keepDependencies>
+<properties/>
+<definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.80">
+<script>
+node { stage("Project-CheckOut-Git") { git credentialsId: 'anoopsinghnegi', url: 'https://github.com/anoopsinghnegi/CICD_Pipeline_Demo1.git' } stage("MVN Clean") { def mvnH = tool name: 'mvn1', type: 'maven' def mvnC = "${mvnH}/bin/mvn" sh "${mvnC} clean" } stage("MVN Build") { def mvnH = tool name: 'mvn1', type: 'maven' def mvnC = "${mvnH}/bin/mvn" sh "${mvnC} package" } stage("Docker build Image") { sh 'docker build -f Dockerfile1 -t negianoop/devops:1.0 .' } stage("Push Docker Image") { withCredentials([string(credentialsId: 'docker_pwd', variable: 'dockerpwd')]) { // some block sh "echo ${dockerpwd} | docker login -u negianoop --password-stdin" sh 'docker push negianoop/devops:1.0' } } stage("Pull Image File From Docker Hub") { withCredentials([string(credentialsId: 'docker_pwd', variable: 'dockerpwd')]) { // some block sh "echo ${dockerpwd}| docker login -u negianoop --password-stdin" sh 'docker pull negianoop/devops:1.0' } } stage("Excute Container") { sh 'docker run -p 8081:8081 -d --name devop negianoop/devops:1.0' } }
+</script>
+<sandbox>true</sandbox>
+</definition>
+<triggers/>
+<disabled>false</disabled>
+</flow-definition>
