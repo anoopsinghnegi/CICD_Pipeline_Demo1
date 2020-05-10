@@ -1,0 +1,84 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.36">
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.SCMTrigger>
+          <spec>H 23 * * *</spec>
+          <ignorePostCommitHooks>false</ignorePostCommitHooks>
+        </hudson.triggers.SCMTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.80">
+    <script>
+node { 
+
+    try
+	{
+    stage(&quot;Project-CheckOut-Git&quot;) 
+		{ 
+		git credentialsId: &apos;anoopsinghnegi&apos;, url: &apos;https://github.com/anoopsinghnegi/CICD_Pipeline_Demo1.git&apos; 
+		}
+    stage(&quot;MVN Clean&quot;)
+		{ 
+		def mvnH = tool name: &apos;mvn1&apos;, type: &apos;maven&apos; 
+		def mvnC = &quot;${mvnH}/bin/mvn&quot; 
+		sh &quot;${mvnC} clean&quot; 
+		} 
+    stage(&quot;MVN Build&quot;) 
+		{ 
+		def mvnH = tool name: &apos;mvn1&apos;, type: &apos;maven&apos;
+		def mvnC = &quot;${mvnH}/bin/mvn&quot; 
+		sh &quot;${mvnC} package&quot; 
+		}
+    	stage(&apos;SonarQube analysis&apos;) {
+        withSonarQubeEnv(credentialsId: &apos;sonar-token&apos;, installationName: &apos;SonarQube&apos;) { // You can override the credential to be used
+          sh &apos;mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.6.0.1398:sonar&apos;
+        }
+  }
+    stage(&quot;Docker build Image&quot;) 
+	{ 
+	sh &apos;docker build -f Dockerfile1 -t negianoop/devops:1.0 .&apos; 
+	} 
+	stage(&quot;Push Docker Image&quot;) 
+	{ 
+		withCredentials([string(credentialsId: &apos;docker_pwd&apos;, variable: &apos;dockerpwd&apos;)]) 
+		{ // some block 
+		sh &quot;echo ${dockerpwd} | docker login -u negianoop --password-stdin&quot; 
+		sh &apos;docker push negianoop/devops:1.0&apos; 
+		} 
+		} 
+	stage(&quot;Pull Image File From Docker Hub&quot;) 
+	{ 
+	withCredentials([string(credentialsId: &apos;docker_pwd&apos;, variable: &apos;dockerpwd&apos;)]) 
+		{ // some block 
+		sh &quot;echo ${dockerpwd}| docker login -u negianoop --password-stdin&quot; 
+		sh &apos;docker pull negianoop/devops:1.0&apos; 
+		} 
+		} 
+	stage(&quot;Excute Container&quot;) 
+	{ 
+	sh &apos;docker run -p 8081:8081 -d --name devop negianoop/devops:1.0&apos; 
+	} 
+	stage(&apos;EC2 Instance Launch &amp; Configure&apos;)
+	{
+	    sh &apos;ansible-playbook -vvvv ec2_instance.yml&apos;
+	}
+	
+	}//try end
+	catch (err) {
+	  currentBuild.result = &apos;FAILURE&apos;
+	  emailext body: &quot;Something is wrong with ${env.BUILD_URL} error-${err}&quot;, subject: &apos;Build Failure&apos;, to: &apos;user@domain.com&apos;
+	}
+
+}
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
