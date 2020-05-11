@@ -6,10 +6,9 @@
   <properties>
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
       <triggers>
-        <hudson.triggers.SCMTrigger>
+        <hudson.triggers.TimerTrigger>
           <spec>H 23 * * *</spec>
-          <ignorePostCommitHooks>false</ignorePostCommitHooks>
-        </hudson.triggers.SCMTrigger>
+        </hudson.triggers.TimerTrigger>
       </triggers>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
@@ -60,13 +59,11 @@ node {
 		sh &apos;docker pull negianoop/devops:1.0&apos; 
 		} 
 		} 
-	stage(&quot;Excute Container&quot;) 
-	{ 
-	sh &apos;docker run -p 8081:8081 -d --name devop negianoop/devops:1.0&apos; 
-	} 
-	stage(&apos;EC2 Instance Launch &amp; Configure&apos;)
+
+	stage(&apos;EC2 Instance Launch &amp; Configure it&apos;)
 	{
-	    sh &apos;ansible-playbook -vvvv ec2_instance.yml&apos;
+	    sh &apos;chmod 600 ansible.pem&apos;
+	    sh &apos;ansible-playbook -vv ec2_instance.yml&apos;
 	}
 	
 	}//try end
